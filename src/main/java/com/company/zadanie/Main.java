@@ -1,5 +1,8 @@
 package com.company.zadanie;
 
+import com.company.zadanie.exceptions.DoctorDoesNotExistException;
+import com.company.zadanie.exceptions.PatientDoesNotExistException;
+
 import java.io.File;
 import java.time.LocalDate;
 import java.util.*;

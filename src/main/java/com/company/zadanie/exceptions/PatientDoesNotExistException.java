@@ -1,4 +1,4 @@
-package com.company.zadanie;
+package com.company.zadanie.exceptions;
 
 public class PatientDoesNotExistException extends RuntimeException{
     public PatientDoesNotExistException(String message) {

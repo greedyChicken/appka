@@ -1,7 +1,10 @@
 package com.company.zadanie;
 
+import lombok.Getter;
+
 import java.time.LocalDate;
 
+@Getter
 public class Visit {
     private final Patient patient;
     private final Doctor doctor;
@@ -14,17 +17,5 @@ public class Visit {
 
         doctor.addVisit(this);
         patient.addVisit(this);
-    }
-
-    public Patient getPatient() {
-        return patient;
-    }
-
-    public Doctor getDoctor() {
-        return doctor;
-    }
-
-    public LocalDate getDate() {
-        return date;
     }
 }

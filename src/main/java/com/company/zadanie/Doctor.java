@@ -1,10 +1,14 @@
 package com.company.zadanie;
 
+import com.company.zadanie.exceptions.VisitExistsException;
+import lombok.Getter;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+@Getter
 public class Doctor extends Citizen {
     private final int id;
     private final String specialty;
@@ -16,22 +20,6 @@ public class Doctor extends Citizen {
         this.id = doctorId;
         this.specialty = specialty;
         this.nip = nip;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getSpecialty() {
-        return specialty;
-    }
-
-    public String getNip() {
-        return nip;
-    }
-
-    public List<Visit> getVisits() {
-        return visits;
     }
 
     public void addVisit(Visit visit) {
