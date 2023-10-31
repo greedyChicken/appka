@@ -1,201 +1,114 @@
 package com.company.zadanie;
 
-import java.io.File;
+import java.sql.SQLOutput;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
 
 public class Main {
     public static void main(String[] args) {
-        List<Doctor> doctors = new ArrayList<>();
-        List<Patient> patients = new ArrayList<>();
-        List<Visit> visits = new ArrayList<>();
 
-        String doctorsFilePath = "lekarze.txt";
-        String patientsFilePath = "pacjenci.txt";
-        String visitsFilePath = "wizyty.txt";
+        /*
+         * Dane są trzy pliki tekstowe o nazwach: lekarze.txt, pacjenci.txt, wizyty.txt.
+         *
+         * Zawierają one informacje na temat lekarzy, pacjentów i odbytych wizyt
+         * domowych.
+         * W każdym z plików dane w wierszu oddzielone są znakami tabulacji.
+         *
+         * Plik o nazwie lekarze.txt zawiera informacje na temat lekarzy: numer
+         * identyfikacyjny
+         *
+         * lekarza, jego nazwisko, imię, specjalność, datę urodzenia, numer NIP i numer
+         * PESEL.
+         *
+         * Przykład:
+         *
+         * 23 Kadaj Monika pediatra  1965-03-16 879-122-69-94 65031687654
+         * 34 Nowak Anna   nefrolog  1965-03-16 879-122-69-94 65031687654
+         *
+         * Plik o nazwie pacjenci.txt zawiera dane na temat pacjentów: numer
+         * identyfikacyjny
+         *
+         * pacjenta, jego nazwisko, imię, numer PESEL i datę urodzenia.
+         *
+         * Przykład:
+         * 122 Nowakowska Joanna 73050512356 1973-05-05
+         *
+         * 124 Witkowski  Hubert 88030422345 1988-03-04
+         *
+         * Plik o nazwie wizyty.txt zawiera informacje na temat domowych wizyt
+         * lekarskich
+         *
+         * przeprowadzonych przez lekarzy u pacjentów: numer identyfikacyjny lekarza,
+         * numer
+         *
+         * identyfikacyjny pacjenta oraz datę wizyty lekarskiej przeprowadzonej przez
+         * lekarza
+         *
+         * u pacjenta.
+         *
+         * Przykład:
+         *
+         * 23 124 2006-12-13
+         *
+         * 34 122 2007-02-20
+         * Wykorzystując informacje zawarte w plikach wykonaj następujące polecenia:
+         *
+         * Daty:
+         *
+         * Wypisz wszystkich pacjentów którzy mieli wizyty od 2000 roku
+         *  Wypisz wszystkich lekarzy którzy mieli wizyty w marcu, czerwcu i grudniu 2007
+         *  Wypisz lekarza ktory miał najwiecej wizyt w okresie podanym jako parametr
+         * Dodatek:
+         *
+         * - znajdź lekarza ktory miał najwięcej wizyt
+         *
+         * - znajdź pacjenta który miał najwięcej wizyt
+         *
+         * - która specalizacja cieszy się największym ppowodzeniem
+         *
+         * - którego roku było najwięcej wizyt?
+         *
+         * - wypisz top 5 najstarszych lekarzy
+         *
+         *
+         */
 
-        try (Scanner doctorsScanner = new Scanner(new File(doctorsFilePath));
-            Scanner patientsScanner = new Scanner(new File(patientsFilePath));
-            Scanner visitsScanner = new Scanner(new File(visitsFilePath))) {
-            doctorsScanner.nextLine();
-            while (doctorsScanner.hasNextLine()) {
-                String line = doctorsScanner.nextLine();
-                String[] words = line.split("\t");
-                if (words.length > 0) {
-                    doctors.add(convertDoctorData(words));
-                }
-            }
-            patientsScanner.nextLine();
-            while (patientsScanner.hasNextLine()) {
-                String line = patientsScanner.nextLine();
-                String[] words = line.split("\t");
-                if (words.length > 0) {
-                    patients.add(convertPatientData(words));
-                }
-            }
-            visitsScanner.nextLine();
-            while (visitsScanner.hasNextLine()) {
-                String line = visitsScanner.nextLine();
-                String[] words = line.split("\t");
-                if (words.length > 0) {
-                    visits.add(convertVisitData(words, doctors, patients));
-                }
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        Doctor.upload();
+        Patient.upload();
+        Visit.upload();
 
-        Doctor doctorWithTheMostVisits = getDoctorWithTheMostVisits(doctors);
-        System.out.println(doctorWithTheMostVisits.getName() + " " + doctorWithTheMostVisits.getSurname());
 
-        Patient patientWithTheMostVisits = getPatientWithTheMostVisits(patients);
-        System.out.println(patientWithTheMostVisits.getName() + " " + patientWithTheMostVisits.getSurname());
+        System.out.println(Doctor.getDoctorList().size());
+        Doctor.printAllDoctors();
+        System.out.println();
+        System.out.println();
+        System.out.println(Patient.patientsHasVisitSince2000());
+        System.out.println(Doctor.hasVisitInMCL2007());
+        System.out.println("Doctor with the highest number of visits in period of requested time is: ");
+        Calendar calendarStart = Calendar.getInstance();
+        calendarStart.set(2000, 0, 1);  // January is month 0 in Calendar
+        Date startDateUtil = calendarStart.getTime();
 
-        System.out.println(getTheMostPopularSpecialty(doctors));
-        System.out.println(getYearWithTheMostVisits(visits));
-        for (Doctor doctor : getTopFiveOldestDoctors(doctors)) {
-            System.out.println(doctor.getName() + " " + doctor.getSurname());
-        }
-        for (Patient patient : getPatientsThatVisitedFiveDoctorsAndMore(patients)) {
-            System.out.println(patient.getName() + " " + patient.getSurname());
-        }
-        for (Doctor doctor : getExclusiveDoctors(doctors)) {
-            System.out.println(doctor.getName() + " " + doctor.getSurname());
-        }
-    }
+        Calendar calendarEnd = Calendar.getInstance();
+        calendarEnd.set(2007, 0, 1);
+        Date endDateUtil = calendarEnd.getTime();
 
-    private static Doctor getDoctorWithTheMostVisits(List<Doctor> doctors) {
-        if (doctors.isEmpty()) {
-            throw new DoctorDoesNotExistException("Such doctor does not exist.");
-        }
-        Doctor hasTheMostVisits = doctors.get(0);
-        for (Doctor doctor : doctors) {
-            if (doctor.getVisits().size() > hasTheMostVisits.getVisits().size()) {
-                hasTheMostVisits = doctor;
-            }
-        }
-        return hasTheMostVisits;
-    }
+        System.out.println(Doctor.withTheMostVisitsInPeriod(startDateUtil, endDateUtil));
+        //LocalDate startDate = LocalDate.of(2000, 01, 01);
+        //LocalDate endDate = LocalDate.of(2007,01,01);
+        //System.out.println(Doctor.withTheMostVisitsInPeriod(startDate,endDate));
+        System.out.println("Doctor with the highest number of visits is: ");
+        System.out.println(Doctor.withTheMostVisits());
+        System.out.println("Patient with the highest number of visits is: ");
+        System.out.println(Patient.withTheMostVisit());
+        System.out.println(Doctor.theMostCommonSpecialization());
+        System.out.println(Visit.busiestYear());
+        System.out.println(Doctor.top5TheOldest());
 
-    private static Patient getPatientWithTheMostVisits(List<Patient> patients) {
-        if (patients.isEmpty()) {
-            throw new PatientDoesNotExistException("Such patient does not exist.");
-        }
-        Patient hasTheMostVisits = patients.get(0);
-        for (Patient patient : patients) {
-            if (patient.getVisits().size() > hasTheMostVisits.getVisits().size()) {
-                hasTheMostVisits = patient;
-            }
-        }
-        return hasTheMostVisits;
-    }
 
-    private static String getTheMostPopularSpecialty(List<Doctor> doctors) {
-        HashMap<String, Integer> specialties = new HashMap<>();
-        for (Doctor doctor : doctors) {
-            String specialty = doctor.getSpecialty();
-            if (specialties.containsKey(specialty)) {
-                specialties.put(specialty, specialties.get(specialty) + 1);
-            } else {
-                specialties.put(specialty, 1);
-            }
-        }
-        return Collections.max(specialties.entrySet(), Map.Entry.comparingByValue()).getKey();
-    }
 
-    private static int getYearWithTheMostVisits(List<Visit> visits) {
-        HashMap<Integer, Integer> years = new HashMap<>();
-        for (Visit visit : visits) {
-            int year = visit.getDate().getYear();
-            if (years.containsKey(year)) {
-                years.put(year, years.get(year) + 1);
-            } else {
-                years.put(year, 1);
-            }
-        }
-        return Collections.max(years.entrySet(), Map.Entry.comparingByValue()).getKey();
-    }
 
-    private static List<Doctor> getTopFiveOldestDoctors(List<Doctor> doctors) {
-        List<Doctor> sortedDoctors = new ArrayList<>(doctors);
-        sortedDoctors.sort(Comparator.comparing(Doctor::getBirthdate, Comparator.comparingInt(LocalDate::getYear))
-                                    .thenComparing(Doctor::getBirthdate, Comparator.comparingInt(LocalDate::getMonthValue))
-                                    .thenComparing(Doctor::getBirthdate, Comparator.comparingInt(LocalDate::getDayOfMonth)));
 
-        return sortedDoctors.subList(0,5);
-    }
-
-    private static List<Patient> getPatientsThatVisitedFiveDoctorsAndMore(List<Patient> patients) {
-        List<Patient> wantedPatients = new ArrayList<>();
-        for (Patient patient : patients) {
-            if (patient.countVisitedDoctors() >= 5) {
-                wantedPatients.add(patient);
-            }
-        }
-        return wantedPatients;
-    }
-
-    private static List<Doctor> getExclusiveDoctors(List<Doctor> doctors) {
-        List<Doctor> exclusiveDoctors = new ArrayList<>();
-        for (Doctor doctor : doctors) {
-            if (doctor.countPatients() == 1) {
-                exclusiveDoctors.add(doctor);
-            }
-        }
-        return exclusiveDoctors;
-    }
-
-    private static Doctor convertDoctorData(String[] data) {
-        int doctorId = Integer.parseInt(data[0]);
-        String surname = data[1];
-        String name = data[2];
-        String specialty = data[3];
-        LocalDate birthdate = convertDateDataToLocalDate(data[4].split("-"));
-        String nip = data[5];
-        String pesel = data[6];
-
-        return new Doctor(name, surname, birthdate, pesel, doctorId, specialty, nip);
-    }
-
-    private static Patient convertPatientData(String[] data) {
-        int patientId = Integer.parseInt(data[0]);
-        String surname = data[1];
-        String name = data[2];
-        String pesel = data[3];
-        LocalDate birthdate = convertDateDataToLocalDate(data[4].split("-"));
-
-        return new Patient(name, surname, birthdate, pesel, patientId);
-    }
-
-    private static Visit convertVisitData(String[] data, List<Doctor> doctors, List<Patient> patients) {
-        Doctor doctor = getDoctorById(doctors, Integer.parseInt(data[0]));
-        Patient patient = getPatientById(patients, Integer.parseInt(data[1]));
-        LocalDate visitDate = convertDateDataToLocalDate(data[2].split("-"));
-        return new Visit(patient, doctor, visitDate);
-    }
-
-    private static Doctor getDoctorById(List<Doctor> doctors, int id) {
-        for (Doctor doctor : doctors) {
-            if (doctor.getId() == id) {
-                return doctor;
-            }
-        }
-        throw new DoctorDoesNotExistException("There is no doctor with such id.");
-    }
-
-    private static Patient getPatientById(List<Patient> patients, int id) {
-        for (Patient patient : patients) {
-            if (patient.getId() == id) {
-                return patient;
-            }
-        }
-        throw new PatientDoesNotExistException("There is no patient with such id.");
-    }
-
-    private static LocalDate convertDateDataToLocalDate(String[] data) {
-        int year = Integer.parseInt(data[0]);
-        int month = Integer.parseInt(data[1]);
-        int day = Integer.parseInt(data[2]);
-        return LocalDate.of(year, month, day);
     }
 }
